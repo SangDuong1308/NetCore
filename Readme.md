@@ -4,7 +4,7 @@
 
 ## Getting Started
 
-*Clone the repository:
+* Clone the repository:
 
 ```bash
 git clone https://github.com/SangDuong1308/ISD-HRMS.git
