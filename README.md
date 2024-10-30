@@ -9,7 +9,7 @@
 ```bash
 git clone https://github.com/SangDuong1308/ISD-HRMS.git
 
-docker-compose up -d
+docker-compose -f .\docker-compose.yml -p postgres up -d
 ```
 Access **pgAdmin**
 * Create **"HRMS"** database
