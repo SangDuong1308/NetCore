@@ -9,6 +9,7 @@ using src.Interfaces;
 using src.Models;
 using src.Repository;
 using src.Services;
+using Microsoft.AspNetCore.HttpLogging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +51,7 @@ builder.Services.AddSwaggerGen(option =>
     option.EnableAnnotations();
 });
 
-using var loggerFactory = LoggerFactory.Create(b => b.SetMinimumLevel(LogLevel.Trace).AddConsole());
+// using var loggerFactory = LoggerFactory.Create(b => b.SetMinimumLevel(LogLevel.Trace).AddConsole());
 
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
@@ -102,12 +103,22 @@ builder.Services.AddAuthentication(options =>
         ),
         ValidateLifetime = true, // validate token expiry
         ClockSkew = TimeSpan.Zero // Set this to zero to remove default 5 minutes tolerance
-
     };
 });
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
+// logging
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+builder.Services.AddHttpLogging(httpLogging => 
+{
+    httpLogging.LoggingFields = HttpLoggingFields.All;
+});
 
 var app = builder.Build();
 
@@ -123,6 +134,8 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+app.UseHttpLogging();
 
 app.UseHttpsRedirection();
 
