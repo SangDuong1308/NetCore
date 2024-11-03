@@ -1,4 +1,3 @@
-using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +9,10 @@ using src.Models;
 using src.Repository;
 using src.Services;
 using Microsoft.AspNetCore.HttpLogging;
+using Serilog;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
-
-DotEnv.Load();
 
 // Add services to the container.
 
@@ -60,15 +59,7 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
-    // try {
-        // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-        // Console.WriteLine("Successfully connected to the database!");
-    // } catch (Exception ex ) {
-    //     Console.WriteLine("Error connecting to the database:");
-    //     Console.WriteLine(ex.Message);
-    //     Console.WriteLine(ex.StackTrace);
-    // }
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -106,8 +97,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<BookRepository>();
 
 // logging
 
@@ -120,7 +113,24 @@ builder.Services.AddHttpLogging(httpLogging =>
     httpLogging.LoggingFields = HttpLoggingFields.All;
 });
 
+
+// builder.Host.UseSerilog((context, configuration) =>
+//     configuration.ReadFrom.Configuration(context.Configuration));
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    try {
+        var context = services.GetRequiredService<ApplicationDBContext>();
+        DBDumpInit.Initialize(context);
+    } catch (Exception ex) {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred creating the DB.");
+    }
+}
 
 // Configure the HTTP request pipeline. 
 if (app.Environment.IsDevelopment())
@@ -135,9 +145,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpLogging();
-
 app.UseHttpsRedirection();
+
+app.UseHttpLogging();
+// app.UseSerilogRequestLogging();
 
 app.UseAuthentication();
 app.UseAuthorization();
