@@ -11,16 +11,28 @@ namespace src.Data
 {
     public class ApplicationDBContext : IdentityDbContext<AppUser>
     {
+        public ApplicationDBContext()
+        {
+            
+        }
+
         public ApplicationDBContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
         {
 
         }
 
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<Book> Books { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Book>().ToTable("Books");
+            builder.Entity<Category>().ToTable("Categories").HasMany(c => c.Books)
+                .WithOne(e => e.Category).HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             List<IdentityRole> roles = new List<IdentityRole>
             {
