@@ -4,26 +4,40 @@
 
 ## Getting Started
 
-* Clone the repository:
+### 1.1 Clone the repository:
 
 ```bash
-git clone https://github.com/SangDuong1308/ISD-HRMS.git
+git clone https://github.com/SangDuong1308/NetCore.git
 
-docker-compose -f .\docker-compose.yml -p postgres up -d
+docker-compose -f .\docker-compose.yml -p NetCore up -d
 ```
-Access **pgAdmin**
-* Create **"HRMS"** database
+### 1.2 Access **pgAdmin**
 ```bash
 http://localhost:5050/browser/
 ```
-* Apply Migration
+* Create **"CleanArchitectureAndDDD"** database
+### 1.3 Apply Migration
 ```bash
 cd .\src\
-dotnet ef migrations add {MigrationName}
-dotnet ef database update
-dotnet watch run
+
+dotnet ef migrations add "Migration name" --context "AppDbContext" --project .\NetCore.Infrastructure\ --startup-project .\NetCore.WebApi\
+
+dotnet ef database update --context "AppDbContext" --project .\NetCore.Infrastructure\ --startup-project .\NetCore.WebApi\
 ```
-* Start application
+### 1.4 Start application
 ```bash
+cd .\src\NetCore.WebApi\
 dotnet watch run
 ```
+
+## Build with
+* [ASP.NET Core 8](https://github.com/dotnet/aspnetcore)
+* [RabbitMQ](https://github.com/rabbitmq)
+* [Redis](https://github.com/redis/redis)
+* [MassTransit](https://github.com/MassTransit)
+* [EF Core](https://github.com/dotnet/efcore)
+* [Moq](https://github.com/moq)
+* [xUnit](https://github.com/xunit/xunit)
+* [HtmlSanitizer](https://github.com/mganss/HtmlSanitizer)
+* [Open Telemetry](https://github.com/open-telemetry)
+* [FluentValidation](https://github.com/FluentValidation/FluentValidation)
