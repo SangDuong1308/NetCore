@@ -1,45 +1,74 @@
-﻿services:
-  postgres:
-    container_name: postgres_container
-    image: postgres:16
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      PGDATA: /data/postgres
-    volumes:
-       - postgres:/data/postgres
+version: "3.9"
+services:
+  rabbitmq:
+    image: masstransit/rabbitmq:latest
+    container_name: rabbitmq
     ports:
-      - "5432:5432"
-    networks:
-      - postgres
-    # restart: unless-stopped
-  
-  pgadmin:
-    container_name: pgadmin_container
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@gmail.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-postgres}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      - 5672:5672
+      - 15672:15672
     volumes:
-       - pgadmin:/var/lib/pgadmin
-
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
-      - postgres
-    # restart: unless-stopped
+      - my-network
 
-#  src:
-#    image: src
-#    build:
-#      context: .
-#      dockerfile: src/Dockerfile
-
-networks:
-  postgres:
-    driver: bridge
-
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/nightly/aspire-dashboard:8.0.0-preview.6
+    container_name: aspire-dashboard
+    environment:
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
+    ports:
+      - 18888:18888
+      - 4317:18889
+    networks:
+      - my-network
+      
+  # mssql:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: mssql
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - MSSQL_SA_PASSWORD=Th3_P@ssw0rd-421
+  #   ports:
+  #     - "1433:1433"
+  #   networks:
+  #     - my-network
+  #   volumes:
+  #     - mssql_data:/var/opt/mssql
+      
+  redis:
+    image: redis:latest
+    command: /bin/sh -c "redis-server --requirepass Th3_P@ssw0rd-421"
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - my-network
+      
+  # my-app:
+    # image: my-app
+    # container_name: my-app
+    # build:
+      # context: .
+      # dockerfile: src/NetCore.WebApi/Dockerfile
+    # environment:
+       # - AppSettings__Redis__Host=redis
+       # - AppSettings__RabbitMq__Host=amqp://rabbitmq
+       # - AppSettings__Telemetry__Host=http://aspire-dashboard
+       # - AppSettings__Telemetry__Port=18889
+       # - AppSettings__MsSql__ConnectionString=Server=mssql;Database=CleanArchitectureAndDDD;User Id=sa;Password=Th3_P@ssw0rd-421;TrustServerCertificate=True
+    # ports:
+      # - 8080:8080
+      # - 8081:8081
+    # networks:
+      # - my-network
+      
 volumes:
-    postgres:
-    pgadmin:
+  rabbitmq_data:
+  redis_data:
+  mssql_data:
+  
+networks:
+  my-network:
