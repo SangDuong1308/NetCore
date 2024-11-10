@@ -12,9 +12,13 @@ namespace src.Helpers
     {
         public MappingProfiles()
         {
+            BookMap();
+        }
+        private void BookMap()
+        {
             CreateMap<Book, BookResponseDto>().ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
-            CreateMap<BookDto, Book>();
-            CreateMap<UpdateBookDto, Book>();
+            CreateMap<BookDto, Book>().ReverseMap();
+            CreateMap<UpdateBookDto, Book>().ReverseMap();
         }
     }
 }

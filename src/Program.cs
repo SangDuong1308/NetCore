@@ -9,8 +9,6 @@ using src.Models;
 using src.Repository;
 using src.Services;
 using Microsoft.AspNetCore.HttpLogging;
-using Serilog;
-using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
